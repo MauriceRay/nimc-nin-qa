@@ -1,0 +1,53 @@
+{
+    "info": {
+          "name": "NIN Consent Privacy - Negative Checks",
+          "description": "Negative Postman checks proving Basic-consent vNIN responses never leak DOB/sex. Closes #1.",
+          "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+          {
+                  "name": "Basic vNIN response must NOT contain DOB",
+                  "request": {
+                            "method": "POST",
+                            "url": { "raw": "{{baseUrl}}/vnin/verify", "host": ["{{baseUrl}}"], "path": ["vnin", "verify"] },
+                            "body": { "mode": "raw", "raw": "{\n  \"vnin\": \"BASIC01ABCD5678\"\n}" }
+                  },
+                  "event": [
+                            {
+                                        "listen": "test",
+                                        "script": {
+                                                      "exec": [
+                                                                      "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                                                      "const b = pm.response.json();",
+                                                                      "pm.expect(b).to.not.have.property('dateOfBirth');",
+                                                                      "pm.expect(b).to.not.have.property('sex');",
+                                                                      "pm.expect(b).to.not.have.property('nationality');"
+                                                      ],
+                                                      "type": "text/javascript"
+                                        }
+                            }
+                  ]
+          },
+          {
+                  "name": "Full vNIN response DOES contain DOB",
+                  "request": {
+                            "method": "POST",
+                            "url": { "raw": "{{baseUrl}}/vnin/verify", "host": ["{{baseUrl}}"], "path": ["vnin", "verify"] },
+                            "body": { "mode": "raw", "raw": "{\n  \"vnin\": \"FULL01ABCD5678\"\n}" }
+                  },
+                  "event": [
+                            {
+                                        "listen": "test",
+                                        "script": {
+                                                      "exec": [
+                                                                      "const b = pm.response.json();",
+                                                                      "pm.expect(b).to.have.property('dateOfBirth');",
+                                                                      "pm.expect(b).to.have.property('sex');"
+                                                      ],
+                                                      "type": "text/javascript"
+                                        }
+                            }
+                  ]
+          }
+    ]
+}
