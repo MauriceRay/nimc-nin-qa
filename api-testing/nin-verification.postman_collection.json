@@ -1,0 +1,84 @@
+{
+    "info": {
+          "name": "NIMC NIN Verification - Sandbox",
+          "description": "Representative Postman collection for the NIN/vNIN verification sandbox. All URLs and keys are illustrative.",
+          "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+          { "key": "baseUrl", "value": "https://sandbox.nimc.example.gov.ng/api/v1" },
+          { "key": "apiKey", "value": "TEST_KEY" }
+    ],
+    "item": [
+          {
+                  "name": "Verify valid NIN",
+                  "request": {
+                            "method": "POST",
+                            "header": [{ "key": "Authorization", "value": "Bearer {{apiKey}}" }],
+                            "url": { "raw": "{{baseUrl}}/nin/verify", "host": ["{{baseUrl}}"], "path": ["nin", "verify"] },
+                            "body": { "mode": "raw", "raw": "{\n  \"nin\": \"01234567890\"\n}" }
+                  },
+                  "response": [],
+                  "event": [
+                            {
+                                        "listen": "test",
+                                        "script": {
+                                                      "exec": [
+                                                                      "pm.test('status 200', () => pm.response.to.have.status(200));",
+                                                                      "pm.test('returns first and last name', () => {",
+                                                                      "  const b = pm.response.json();",
+                                                                      "  pm.expect(b.firstName).to.be.a('string');",
+                                                                      "  pm.expect(b.lastName).to.be.a('string');",
+                                                                      "});"
+                                                      ],
+                                                      "type": "text/javascript"
+                                        }
+                            }
+                  ]
+          },
+          {
+                  "name": "Verify expired vNIN returns 410",
+                  "request": {
+                            "method": "POST",
+                            "header": [{ "key": "Authorization", "value": "Bearer {{apiKey}}" }],
+                            "url": { "raw": "{{baseUrl}}/vnin/verify", "host": ["{{baseUrl}}"], "path": ["vnin", "verify"] },
+                            "body": { "mode": "raw", "raw": "{\n  \"vnin\": \"EXPIRED01ABCD5678\"\n}" }
+                  },
+                  "response": [],
+                  "event": [
+                            {
+                                        "listen": "test",
+                                        "script": {
+                                                      "exec": [
+                                                                      "pm.test('expired token is 410 Gone', () => pm.response.to.have.status(410));"
+                                                      ],
+                                                      "type": "text/javascript"
+                                        }
+                            }
+                  ]
+          },
+          {
+                  "name": "Malformed NIN structured error",
+                  "request": {
+                            "method": "POST",
+                            "header": [{ "key": "Authorization", "value": "Bearer {{apiKey}}" }],
+                            "url": { "raw": "{{baseUrl}}/nin/verify", "host": ["{{baseUrl}}"], "path": ["nin", "verify"] },
+                            "body": { "mode": "raw", "raw": "{\n  \"nin\": \"ABC\"\n}" }
+                  },
+                  "response": [],
+                  "event": [
+                            {
+                                        "listen": "test",
+                                        "script": {
+                                                      "exec": [
+                                                                      "pm.test('bad request, no stack trace', () => {",
+                                                                      "  pm.response.to.have.status(400);",
+                                                                      "  pm.expect(pm.response.text()).to.not.include('Exception');",
+                                                                      "});"
+                                                      ],
+                                                      "type": "text/javascript"
+                                        }
+                            }
+                  ]
+          }
+    ]
+}
